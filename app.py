@@ -44,7 +44,9 @@ WHALE_SPECIES = ["Unknown", "Sperm whale", "Humpback whale", "Blue whale", "Kill
 st.set_page_config(
     page_title="Whale Sound Analysis",
     page_icon="🐋",
-    layout="wide"
+    layout="wide",
+    # More main-area space on phones; users open the sidebar from the menu when needed
+    initial_sidebar_state="collapsed",
 )
 
 @st.cache_resource
@@ -968,6 +970,51 @@ def main():
             color: #00d2d3 !important;
             margin-bottom: 4px;
         }
+
+        /* --- Mobile & touch-friendly (narrow viewports) --- */
+        @media (max-width: 768px) {
+            .main .block-container {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                padding-top: 1rem !important;
+                max-width: 100% !important;
+            }
+            .word-art-title {
+                font-size: clamp(1.25rem, 8vw, 2rem) !important;
+                letter-spacing: 1px !important;
+                transform: none !important;
+                line-height: 1.2 !important;
+            }
+            /* ~44px minimum touch target (iOS HIG / Material) */
+            .stButton > button {
+                min-height: 44px !important;
+                padding: 0.5rem 1rem !important;
+            }
+            [data-testid="stSidebar"] button {
+                min-height: 40px !important;
+            }
+            /* Plotly: scroll horizontally instead of clipping on small screens */
+            [data-testid="stPlotlyChart"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+            }
+            /* Lighter visuals + less GPU on phones */
+            .whale-background-overlay {
+                display: none !important;
+            }
+            .bubble-container {
+                display: none !important;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bubble {
+                animation: none !important;
+            }
+            .whale-background-overlay {
+                display: none !important;
+            }
+        }
     </style>
     <script>
         // Force all sidebar text to white - overrides inline styles
@@ -1416,9 +1463,9 @@ def main():
                     
                     # Spectrogram tab: frequency-first layout
                     st.subheader("📈 Spectrogram (frequency content)")
-                    st.pyplot(plot_spectrogram(file))
+                    st.pyplot(plot_spectrogram(file), use_container_width=True)
                     with st.expander("Waveform (time domain reference)", expanded=False):
-                        st.pyplot(plot_waveform(file))
+                        st.pyplot(plot_waveform(file), use_container_width=True)
                     
                     st.subheader("📊 Audio Features & Analysis")
                     audio_data, sample_rate = _get_audio_array(file.name)
@@ -1459,7 +1506,7 @@ def main():
                         axes[1].set_xlabel('Time (s)')
                         axes[1].set_ylabel('Frequency (Hz)')
                         fig_spec.tight_layout()
-                        st.pyplot(fig_spec)
+                        st.pyplot(fig_spec, use_container_width=True)
                         plt.close(fig_spec)
                     except Exception:
                         pass  # Optional visualization
@@ -1647,7 +1694,7 @@ def main():
                     with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp_file:
                         tmp_waveform_path = tmp_file.name
                         sf.write(tmp_waveform_path, audio_data, sample_rate)
-                    st.pyplot(plot_waveform(tmp_waveform_path))
+                    st.pyplot(plot_waveform(tmp_waveform_path), use_container_width=True)
                 except Exception as e:
                     st.error(f"Failed to plot waveform: {e}")
                 finally:
@@ -1668,7 +1715,7 @@ def main():
                     ax.set_xlabel('Time (s)')
                     ax.set_ylabel('RMS')
                     fig_env.tight_layout()
-                    st.pyplot(fig_env)
+                    st.pyplot(fig_env, use_container_width=True)
                     plt.close(fig_env)
                 except Exception:
                     pass
@@ -1679,7 +1726,7 @@ def main():
                         with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp_file:
                             tmp_spectrogram_path = tmp_file.name
                             sf.write(tmp_spectrogram_path, audio_data, sample_rate)
-                        st.pyplot(plot_spectrogram(tmp_spectrogram_path))
+                        st.pyplot(plot_spectrogram(tmp_spectrogram_path), use_container_width=True)
                     except Exception as e:
                         st.error(f"Failed to plot spectrogram: {e}")
                     finally:
@@ -2350,7 +2397,7 @@ def main():
 
     # Whale silhouette - giant blurred oval, pure CSS animation
     st.markdown("""
-    <div style="position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;
+    <div class="whale-background-overlay" style="position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;
         pointer-events:none!important;z-index:99999!important;">
         <div style="position:absolute!important;top:12%!important;left:0!important;width:140%!important;
             max-width:1800px!important;height:320px!important;margin-top:-160px!important;

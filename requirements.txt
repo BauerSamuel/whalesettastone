@@ -36,4 +36,7 @@ torch>=2.0.0
 jupyter>=1.0.0
 notebook>=6.0.0
 cryptography>=42.0.0
-streamlit>=1.0.0
+# Streamlit Cloud: need >=1.41 for Python 3.13. Older Streamlit (e.g. 1.19) + Altair 6 fails at import:
+#   ModuleNotFoundError: No module named 'altair.vegalite.v4'
+# st.pyplot(..., use_container_width=True) needs >=1.29.
+streamlit>=1.41.0

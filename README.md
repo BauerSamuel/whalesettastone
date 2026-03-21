@@ -99,6 +99,13 @@ pytest tests/ -v
 | `WHALE_MAX_AUDIO_SECONDS` | `60` | Cap audio duration (seconds) when loading; longer files are truncated to reduce memory. `0` = no cap. |
 | `WHALE_RESAMPLE_RATE` | `22050` | Resample audio to this rate (Hz) during load. Reduces array size. `0` = keep original. |
 
+## Streamlit Community Cloud
+
+- **Main file:** `app.py` (repository root).
+- **Dependencies:** `requirements.txt` (includes `streamlit>=1.41.0` so Python **3.13** and **Altair 6** work; older Streamlit + new Altair causes `ModuleNotFoundError: altair.vegalite.v4`).
+- **System libs:** `packages.txt` installs `libsndfile1` for audio I/O.
+- Push the branch Cloud uses (e.g. `Main`), then **Reboot app** in **Manage app** after changing dependencies.
+
 ## Docker
 
 Build and run locally (first build downloads dependencies and may take several minutes):
