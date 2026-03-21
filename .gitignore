@@ -31,17 +31,15 @@ Thumbs.db
 .env.*
 !.env.example
 
-# Runtime data & logs (keep repo layout; ignore generated content)
+# Runtime data & logs (ignore all data artifacts)
 logs/
 *.log
-data/logs/
-data/uploads/*.wav
-data/whale_codas/*.wav
-data/tmp_audio/
-data/**/*.log
+data/**
+!data/**/.gitkeep
+!data/.gitkeep
 
 # Keep directory placeholders if you use them; ignore heavy artifacts
 # Uncomment if you do not want to track generated data:
 # data/whale_codas/*.wav
-# data/plots/*.png
+data/plots/*.png
 # data/embeddings/
