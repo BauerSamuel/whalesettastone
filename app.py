@@ -548,6 +548,9 @@ def main():
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
     <style>
+        /* Load Material Symbols inside <style> (works when <link> in body is ignored or late) */
+        @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0");
+
         /* Main page background and text */
         .stApp {
             background: linear-gradient(135deg, #1a237e, #0d47a1) !important;
@@ -768,27 +771,12 @@ def main():
             font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace !important;
         }
         
-        /* Restore default fonts for Streamlit chrome (hamburger, Deploy menu, icons) */
+        /* Restore default fonts for Streamlit chrome (do NOT use revert-layer on stToolbar — it breaks Material text icons in the sidebar opener) */
         [data-testid="stHeader"],
         [data-testid="stHeader"] *,
-        [data-testid="stToolbar"],
-        [data-testid="stToolbar"] *,
         [data-testid="stDecoration"],
         [data-testid="stDecoration"] * {
             font-family: revert-layer !important;
-        }
-
-        /* Collapsed sidebar chevron uses Material Symbols text in some Streamlit versions — must not inherit app monospace */
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="stSidebarCollapsedControl"] * {
-            font-family: "Material Symbols Outlined", sans-serif !important;
-            font-style: normal !important;
-            font-weight: normal !important;
-            letter-spacing: normal !important;
-            text-transform: none !important;
-            -webkit-font-smoothing: antialiased !important;
-            font-feature-settings: "liga" !important;
-            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24 !important;
         }
         
         /* Markdown in main only */
@@ -1024,6 +1012,21 @@ def main():
                 display: none !important;
             }
         }
+
+        /* LAST: collapsed-sidebar opener (Material ligatures). Must win over Streamlit emotion CSS injected after our block. */
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="stSidebarCollapsedControl"] *,
+        [data-testid="stAppViewContainer"] [data-testid="stSidebarCollapsedControl"],
+        [data-testid="stAppViewContainer"] [data-testid="stSidebarCollapsedControl"] * {
+            font-family: "Material Symbols Outlined", sans-serif !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            letter-spacing: normal !important;
+            text-transform: none !important;
+            -webkit-font-smoothing: antialiased !important;
+            font-feature-settings: "liga" !important;
+            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24 !important;
+        }
     </style>
     <script>
         // Force all sidebar text to white - overrides inline styles
@@ -1041,6 +1044,20 @@ def main():
             }
         }
         
+        // Streamlit may inject styles after ours; force Material font on collapsed-sidebar control (raw names like double_arrow_right)
+        function fixCollapsedSidebarMaterialFont() {
+            const roots = document.querySelectorAll('[data-testid="stSidebarCollapsedControl"]');
+            const mat = '"Material Symbols Outlined", sans-serif';
+            roots.forEach(root => {
+                [root, ...root.querySelectorAll('*')].forEach(el => {
+                    if (el.tagName === 'SVG' || el.closest('svg')) return;
+                    el.style.setProperty('font-family', mat, 'important');
+                    el.style.setProperty('font-feature-settings', '"liga"', 'important');
+                    el.style.setProperty('font-variation-settings', '"FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24', 'important');
+                });
+            });
+        }
+
         // Apply tech font to all main content text
         function applyTechFont() {
             const techFont = "'Share Tech Mono', 'VT323', 'Courier New', monospace";
@@ -1063,6 +1080,8 @@ def main():
             markdowns.forEach(el => {
                 el.style.fontFamily = techFont;
             });
+
+            fixCollapsedSidebarMaterialFont();
         }
         
         // Run immediately and on DOM changes
