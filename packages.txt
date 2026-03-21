@@ -1,3 +1,1 @@
-# System packages for Streamlit Community Cloud (Debian/Ubuntu).
-# Needed for soundfile / librosa to read WAV without falling back to brittle paths.
 libsndfile1
