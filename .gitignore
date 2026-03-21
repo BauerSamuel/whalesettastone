@@ -35,6 +35,8 @@ Thumbs.db
 logs/
 *.log
 data/logs/
+data/uploads/*.wav
+data/whale_codas/*.wav
 data/tmp_audio/
 data/**/*.log
 

@@ -750,45 +750,40 @@ def main():
             background-color: #0097e6 !important;
         }
         
-        /* Text contrast improvements - Apply tech font to main content */
-        .stMarkdown, .stText {
+        /* Text contrast — main column only (sidebar has its own rules above) */
+        .main .stMarkdown, .main .stText {
             color: #ffffff !important;
             font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace !important;
         }
         
-        /* Main content area - tech/terminal font - apply to ALL text elements */
+        /* Main content only — do NOT style .stApp-wide div/span (breaks Streamlit toolbar Material Symbols) */
         .main .block-container,
-        .main .block-container *,
-        .stApp [data-testid="stHeader"],
-        .stApp [data-testid="stHeader"] *,
-        .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
-        .stApp p, .stApp span, .stApp div,
-        .stApp .stMarkdown, .stApp .stText,
-        .stApp [class*="stMarkdown"],
-        .stApp [class*="stText"],
-        .stApp [class*="element-container"] {
+        .main .block-container * {
             font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace !important;
         }
         
-        /* Headers specifically */
-        h1, h2, h3, h4, h5, h6 {
+        /* Page titles in main (Streamlit widgets) */
+        .main h1, .main h2, .main h3, .main h4, .main h5, .main h6 {
             font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace !important;
         }
         
-        /* Streamlit headers */
-        [data-testid="stHeader"] h1,
-        [data-testid="stHeader"] h2,
-        [data-testid="stHeader"] h3 {
-            font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace !important;
+        /* Restore default fonts for Streamlit chrome (hamburger, Deploy menu, icons) */
+        [data-testid="stHeader"],
+        [data-testid="stHeader"] *,
+        [data-testid="stToolbar"],
+        [data-testid="stToolbar"] *,
+        [data-testid="stDecoration"],
+        [data-testid="stDecoration"] * {
+            font-family: revert-layer !important;
         }
         
-        /* All markdown content */
-        .stMarkdown p,
-        .stMarkdown li,
-        .stMarkdown ul,
-        .stMarkdown ol,
-        .stMarkdown div,
-        .stMarkdown span {
+        /* Markdown in main only */
+        .main .stMarkdown p,
+        .main .stMarkdown li,
+        .main .stMarkdown ul,
+        .main .stMarkdown ol,
+        .main .stMarkdown div,
+        .main .stMarkdown span {
             font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace !important;
         }
         
@@ -1048,15 +1043,9 @@ def main():
                 });
             }
             
-            // Also apply to Streamlit headers and markdown
-            const headers = document.querySelectorAll('[data-testid="stHeader"] h1, [data-testid="stHeader"] h2, [data-testid="stHeader"] h3');
-            headers.forEach(el => {
-                if (!el.classList.contains('word-art-title')) {
-                    el.style.fontFamily = techFont;
-                }
-            });
+            // Do not override fonts inside stHeader — toolbar uses Material Symbols (ligatures break → raw names like keyboard_double_arrow_left)
             
-            const markdowns = document.querySelectorAll('.stMarkdown p, .stMarkdown li, .stMarkdown div');
+            const markdowns = document.querySelectorAll('.main .stMarkdown p, .main .stMarkdown li, .main .stMarkdown div');
             markdowns.forEach(el => {
                 el.style.fontFamily = techFont;
             });
