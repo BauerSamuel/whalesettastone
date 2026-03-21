@@ -546,6 +546,7 @@ def main():
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
     <style>
         /* Main page background and text */
         .stApp {
@@ -775,6 +776,19 @@ def main():
         [data-testid="stDecoration"],
         [data-testid="stDecoration"] * {
             font-family: revert-layer !important;
+        }
+
+        /* Collapsed sidebar chevron uses Material Symbols text in some Streamlit versions — must not inherit app monospace */
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="stSidebarCollapsedControl"] * {
+            font-family: "Material Symbols Outlined", sans-serif !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            letter-spacing: normal !important;
+            text-transform: none !important;
+            -webkit-font-smoothing: antialiased !important;
+            font-feature-settings: "liga" !important;
+            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24 !important;
         }
         
         /* Markdown in main only */
