@@ -1,0 +1,14 @@
+services:
+  whale-lingo:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      # Production defaults; override in .env or compose overrides
+      WHALE_SHOW_DEBUG: "false"
+      # WHALE_MAX_UPLOAD_FILES: "20"
+      # WHALE_MAX_UPLOAD_BYTES: "52428800"
+      # CODA_EMBEDDINGS_KEY: "your-fernet-key-base64"
+    volumes:
+      # Persist uploads, plots, embeddings under ./data on the host
+      - ./data:/app/data

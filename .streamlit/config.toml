@@ -1,0 +1,16 @@
+# Streamlit defaults for local dev and Docker.
+# Override via env: https://docs.streamlit.io/develop/concepts/configuration/options
+
+[server]
+headless = true
+# Local dev: bind to localhost. Docker overrides with --server.address=0.0.0.0
+address = "127.0.0.1"
+port = 8501
+enableCORS = true
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false
+
+[runner]
+fastReruns = true
