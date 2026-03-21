@@ -45,8 +45,8 @@ st.set_page_config(
     page_title="Whale Sound Analysis",
     page_icon="🐋",
     layout="wide",
-    # More main-area space on phones; users open the sidebar from the menu when needed
-    initial_sidebar_state="collapsed",
+    # Expanded by default — avoids broken Material icon text on the collapsed-sidebar opener in some browsers
+    initial_sidebar_state="expanded",
 )
 
 @st.cache_resource
@@ -546,11 +546,7 @@ def main():
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
     <style>
-        /* Load Material Symbols inside <style> (works when <link> in body is ignored or late) */
-        @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0");
-
         /* Main page background and text */
         .stApp {
             background: linear-gradient(135deg, #1a237e, #0d47a1) !important;
@@ -1013,19 +1009,35 @@ def main():
             }
         }
 
-        /* LAST: collapsed-sidebar opener (Material ligatures). Must win over Streamlit emotion CSS injected after our block. */
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="stSidebarCollapsedControl"] *,
-        [data-testid="stAppViewContainer"] [data-testid="stSidebarCollapsedControl"],
-        [data-testid="stAppViewContainer"] [data-testid="stSidebarCollapsedControl"] * {
-            font-family: "Material Symbols Outlined", sans-serif !important;
-            font-style: normal !important;
-            font-weight: normal !important;
-            letter-spacing: normal !important;
-            text-transform: none !important;
-            -webkit-font-smoothing: antialiased !important;
-            font-feature-settings: "liga" !important;
-            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24 !important;
+        /*
+         * Collapsed-sidebar opener: Streamlit may render Material icon names as plain text (e.g. double_arrow_right).
+         * Hide the broken label and draw a simple arrow — no external icon font required.
+         */
+        [data-testid="stSidebarCollapsedControl"] button,
+        [data-testid="stSidebarCollapsedControl"] [role="button"] {
+            position: relative !important;
+            min-width: 2.25rem !important;
+            min-height: 2.25rem !important;
+            font-size: 0 !important;
+            line-height: 0 !important;
+            color: transparent !important;
+        }
+        [data-testid="stSidebarCollapsedControl"] button *,
+        [data-testid="stSidebarCollapsedControl"] [role="button"] * {
+            display: none !important;
+        }
+        [data-testid="stSidebarCollapsedControl"] button::after,
+        [data-testid="stSidebarCollapsedControl"] [role="button"]::after {
+            content: "▶" !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 1rem !important;
+            line-height: 1 !important;
+            color: rgba(49, 51, 63, 0.85) !important;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif !important;
+            position: absolute !important;
+            inset: 0 !important;
         }
     </style>
     <script>
@@ -1044,20 +1056,6 @@ def main():
             }
         }
         
-        // Streamlit may inject styles after ours; force Material font on collapsed-sidebar control (raw names like double_arrow_right)
-        function fixCollapsedSidebarMaterialFont() {
-            const roots = document.querySelectorAll('[data-testid="stSidebarCollapsedControl"]');
-            const mat = '"Material Symbols Outlined", sans-serif';
-            roots.forEach(root => {
-                [root, ...root.querySelectorAll('*')].forEach(el => {
-                    if (el.tagName === 'SVG' || el.closest('svg')) return;
-                    el.style.setProperty('font-family', mat, 'important');
-                    el.style.setProperty('font-feature-settings', '"liga"', 'important');
-                    el.style.setProperty('font-variation-settings', '"FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24', 'important');
-                });
-            });
-        }
-
         // Apply tech font to all main content text
         function applyTechFont() {
             const techFont = "'Share Tech Mono', 'VT323', 'Courier New', monospace";
@@ -1080,8 +1078,6 @@ def main():
             markdowns.forEach(el => {
                 el.style.fontFamily = techFont;
             });
-
-            fixCollapsedSidebarMaterialFont();
         }
         
         // Run immediately and on DOM changes
