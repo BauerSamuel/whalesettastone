@@ -1039,6 +1039,29 @@ def main():
             position: absolute !important;
             inset: 0 !important;
         }
+
+        /*
+         * Sidebar expand control (collapsed state): some Cloud builds leak the Material ligature text
+         * inside the actual `stExpandSidebarButton` control (e.g. "keyboard_double_arrow_right").
+         * Hide the text and render our own chevron via ::after.
+         */
+        [data-testid="stSidebar"][aria-expanded="false"] button[data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"] {
+            font-size: 0 !important;
+            line-height: 0 !important;
+            color: transparent !important;
+        }
+        [data-testid="stSidebar"][aria-expanded="false"] button[data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"]::after {
+            content: "»" !important;
+            font-size: 18px !important;
+            line-height: 1 !important;
+            display: inline-block !important;
+            color: rgba(49, 51, 63, 0.85) !important;
+            position: relative !important;
+            top: -1px !important;
+            left: 0 !important;
+            width: 100% !important;
+            text-align: center !important;
+        }
     </style>
     <script>
         // Force all sidebar text to white - overrides inline styles
@@ -1054,6 +1077,18 @@ def main():
                     }
                 });
             }
+        }
+
+        // Remove leaked Material ligature label from the sidebar expand control.
+        function clearExpandSidebarLigatureText() {
+            const spans = document.querySelectorAll('button[data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"]');
+            spans.forEach(span => {
+                const raw = (span.textContent || '').trim().toLowerCase();
+                if (raw === 'keyboard_double_arrow_right' || raw === 'keyboard_double_arrow_left') {
+                    // Clear the actual text node; ::after (CSS) will provide the icon fallback.
+                    span.textContent = '';
+                }
+            });
         }
         
         // Apply tech font to all main content text
@@ -1085,20 +1120,25 @@ def main():
             document.addEventListener('DOMContentLoaded', () => {
                 forceSidebarTextWhite();
                 applyTechFont();
+                clearExpandSidebarLigatureText();
             });
         } else {
             forceSidebarTextWhite();
             applyTechFont();
+            clearExpandSidebarLigatureText();
         }
         // Also run after delays to catch dynamically loaded content
         setTimeout(() => { forceSidebarTextWhite(); applyTechFont(); }, 100);
         setTimeout(() => { forceSidebarTextWhite(); applyTechFont(); }, 500);
         setTimeout(() => { forceSidebarTextWhite(); applyTechFont(); }, 1000);
+        setTimeout(() => { clearExpandSidebarLigatureText(); }, 200);
+        setTimeout(() => { clearExpandSidebarLigatureText(); }, 700);
         
         // Watch for new content being added
         const observer = new MutationObserver(() => {
             forceSidebarTextWhite();
             applyTechFont();
+            clearExpandSidebarLigatureText();
         });
         observer.observe(document.body, { childList: true, subtree: true });
     </script>
