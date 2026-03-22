@@ -527,18 +527,33 @@ def main():
 
     if SHOW_DEBUG:
         st.sidebar.text(f"Batch ready for analysis: {is_batch_processed}")
-    
-    # Navigation options - always enabled so users can navigate
-    page = st.sidebar.radio(
-        "Go to", 
-        ["Upload & Process", "Spectrogram", "Waveform", "Pattern Detection", "Coda Rhythm & Timing", "Coda Reference", "About"]
-    )
 
-    # Show helpful messages but don't disable navigation
+    # Navigation: hide analysis tabs until at least one file is in the workflow (upload or source load)
+    nav_pages_full = [
+        "Upload & Process",
+        "Spectrogram",
+        "Waveform",
+        "Pattern Detection",
+        "Coda Rhythm & Timing",
+        "Coda Reference",
+        "About",
+    ]
+    nav_pages_limited = ["Upload & Process", "About"]
+    page_options = nav_pages_full if st.session_state.files_uploaded else nav_pages_limited
+
+    # If we shrink the option list, Streamlit may keep an old radio value — reset to a valid tab
+    if "main_nav_radio" in st.session_state and st.session_state.main_nav_radio not in page_options:
+        st.session_state.main_nav_radio = page_options[0]
+
+    page = st.sidebar.radio("Go to", page_options, key="main_nav_radio")
+
     if not st.session_state.files_uploaded:
-        st.sidebar.info("💡 Upload and process files to see analysis results")
+        st.sidebar.info(
+            "💡 **Get started:** Upload files below or load from the **data source** dropdown, then click **Process Files**. "
+            "After that, the analysis tabs (Spectrogram, Waveform, …) appear in this sidebar."
+        )
     elif st.session_state.files_uploaded and not is_batch_processed:
-        st.sidebar.info("💡 Click 'Process Files' to enable analysis options")
+        st.sidebar.info("💡 Click **Process Files** to run analysis, then open the tabs you need.")
 
 
     # Add purpose statement using safe Streamlit components
@@ -1261,6 +1276,12 @@ def main():
         
         <div style="margin-top: 40px;"></div>
         """, unsafe_allow_html=True)
+        if not st.session_state.files_uploaded:
+            st.info(
+                "**How to use this app:** Upload one or more audio files below, or choose a **data source** in the dropdown "
+                "and load samples. Click **Process Files** when you’re ready. Then use **Navigation** in the sidebar to open "
+                "**Spectrogram**, **Waveform**, **Pattern Detection**, and other tabs for different analyses of your audio."
+            )
         # Create container with safe Streamlit components
         with st.container():
             # Status messages
