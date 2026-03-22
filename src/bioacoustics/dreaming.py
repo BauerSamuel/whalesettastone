@@ -35,19 +35,11 @@ class BioacousticDreamer:
         self._setup_logging()
     
     def _setup_logging(self):
-        """Set up logging configuration."""
-        from ..config import LOGS_DIR
-
-        log_dir = LOGS_DIR
-        log_dir.mkdir(parents=True, exist_ok=True)
-        
+        """Log to stderr only — no on-disk log files."""
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(log_dir / "dreaming.log"),
-                logging.StreamHandler()
-            ]
+            handlers=[logging.StreamHandler()],
         )
         self.logger = logging.getLogger(__name__)
     

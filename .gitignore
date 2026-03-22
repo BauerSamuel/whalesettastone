@@ -37,6 +37,8 @@ logs/
 data/**
 !data/**/.gitkeep
 !data/.gitkeep
+# Explicit: log files under data (also covered by data/**)
+data/logs/
 
 # Keep directory placeholders if you use them; ignore heavy artifacts
 # Uncomment if you do not want to track generated data:

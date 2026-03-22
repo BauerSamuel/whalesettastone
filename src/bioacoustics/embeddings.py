@@ -65,21 +65,11 @@ class CodaEmbeddings:
         self._setup_logging()
         
     def _setup_logging(self):
-        """Set up logging configuration."""
-        from ..config import LOGS_DIR
-
-        log_dir = LOGS_DIR
-        log_dir.mkdir(parents=True, exist_ok=True)
-        
-        log_file = log_dir / f"embeddings_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-        
+        """Log to stderr only — no on-disk log files (keeps repo/workspace clean)."""
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(log_file),
-                logging.StreamHandler()
-            ]
+            handlers=[logging.StreamHandler()],
         )
         self.logger = logging.getLogger(__name__)
     
