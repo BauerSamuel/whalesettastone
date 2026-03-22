@@ -1062,6 +1062,59 @@ def main():
             width: 100% !important;
             text-align: center !important;
         }
+
+        /*
+         * Header expand button fallback: apply the same nav-sidebar trick directly on the button.
+         * This catches Cloud variants where the leaked ligature text is on the button/text node itself.
+         */
+        button[data-testid="stExpandSidebarButton"] {
+            position: relative !important;
+            min-width: 2.25rem !important;
+            min-height: 2.25rem !important;
+            font-size: 0 !important;
+            line-height: 0 !important;
+            color: transparent !important;
+        }
+        button[data-testid="stExpandSidebarButton"] * {
+            display: none !important;
+        }
+        button[data-testid="stExpandSidebarButton"]::after {
+            content: "▶" !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 1rem !important;
+            line-height: 1 !important;
+            color: rgba(49, 51, 63, 0.85) !important;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif !important;
+            position: absolute !important;
+            inset: 0 !important;
+        }
+
+        /*
+         * Top header bar: same leak as sidebar — Material ligature shows as plain text (e.g. double_arrow_right,
+         * or truncated "ouble_arrow_right") on stIconMaterial spans not covered by sidebar-only selectors.
+         */
+        [data-testid="stHeader"] [data-testid="stIconMaterial"],
+        [data-testid="stDecoration"] [data-testid="stIconMaterial"] {
+            font-size: 0 !important;
+            line-height: 0 !important;
+            color: transparent !important;
+            display: inline-block !important;
+            overflow: hidden !important;
+            min-width: 1.25rem !important;
+            vertical-align: middle !important;
+        }
+        [data-testid="stHeader"] [data-testid="stIconMaterial"]::after,
+        [data-testid="stDecoration"] [data-testid="stIconMaterial"]::after {
+            content: "»" !important;
+            font-size: 18px !important;
+            line-height: 1 !important;
+            display: inline-block !important;
+            color: rgba(49, 51, 63, 0.85) !important;
+            position: relative !important;
+            top: -1px !important;
+        }
     </style>
     <script>
         // Force all sidebar text to white - overrides inline styles
@@ -1079,14 +1132,58 @@ def main():
             }
         }
 
-        // Remove leaked Material ligature label from the sidebar expand control.
+        function isLeakedMaterialIconText(t) {
+            const s = (t || '').trim().toLowerCase().replace(/\\s+/g, '');
+            if (!s || s.length < 4) return false;
+            if (!s.includes('_')) return false;
+            return (
+                s.includes('arrow') || s.includes('chevron') || s.includes('keyboard') ||
+                s.includes('double') || s.includes('menu') || s.includes('expand') ||
+                s.includes('collapse')
+            );
+        }
+
+        // Remove leaked Material ligature text from sidebar expand + top header chrome.
         function clearExpandSidebarLigatureText() {
             const spans = document.querySelectorAll('button[data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"]');
             spans.forEach(span => {
                 const raw = (span.textContent || '').trim().toLowerCase();
-                if (raw === 'keyboard_double_arrow_right' || raw === 'keyboard_double_arrow_left') {
-                    // Clear the actual text node; ::after (CSS) will provide the icon fallback.
+                if (
+                    raw === 'keyboard_double_arrow_right' || raw === 'keyboard_double_arrow_left' ||
+                    raw === 'double_arrow_right' || raw === 'double_arrow_left'
+                ) {
                     span.textContent = '';
+                }
+            });
+
+            // Header / decoration: any stIconMaterial showing raw ligature names
+            document.querySelectorAll('[data-testid="stHeader"] [data-testid="stIconMaterial"], [data-testid="stDecoration"] [data-testid="stIconMaterial"]').forEach(span => {
+                const raw = (span.textContent || '').trim().toLowerCase();
+                if (isLeakedMaterialIconText(raw)) span.textContent = '';
+            });
+
+            // Scrub leaked/truncated text nodes on expand buttons (e.g. "ouble_arrow_right")
+            const buttons = document.querySelectorAll('button[data-testid="stExpandSidebarButton"]');
+            buttons.forEach(btn => {
+                const walker = document.createTreeWalker(btn, NodeFilter.SHOW_TEXT, null);
+                let node;
+                while ((node = walker.nextNode())) {
+                    const t = (node.textContent || '').trim().toLowerCase();
+                    if (!t) continue;
+                    if (isLeakedMaterialIconText(t)) node.textContent = '';
+                }
+            });
+
+            // Catch-all: text nodes anywhere under header / decoration chrome (not .main content)
+            ['[data-testid="stHeader"]', '[data-testid="stDecoration"]'].forEach(sel => {
+                const root = document.querySelector(sel);
+                if (!root) return;
+                const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+                let node;
+                while ((node = tw.nextNode())) {
+                    const t = (node.textContent || '').trim().toLowerCase();
+                    if (!t) continue;
+                    if (isLeakedMaterialIconText(t)) node.textContent = '';
                 }
             });
         }
