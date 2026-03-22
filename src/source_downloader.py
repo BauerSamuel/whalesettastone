@@ -3,15 +3,41 @@ Helper module to download whale sounds from various sources for use in the Strea
 """
 
 import logging
+import re
 import requests
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 import io
 
+import numpy as np
+import soundfile as sf
+
 from .sources import WHALE_SOUND_SOURCES
 from .config import WHALE_CODAS_DIR
 
 logger = logging.getLogger(__name__)
+
+
+def _synthetic_test_wav_bytes(filename: str) -> Optional[bytes]:
+    """
+    Build minimal valid WAV bytes for bundled sample names when files are missing on disk.
+
+    Streamlit Cloud and minimal checkouts often omit ``data/sample_audio/*.wav`` (ignored or not
+    shipped). Synthesizing tones keeps **Sample Files** working without large binaries in git.
+    """
+    m = re.match(r"^test_tone_(\d+)\.wav$", filename, re.IGNORECASE)
+    if not m:
+        return None
+    idx = int(m.group(1))
+    # Distinct tones: 220 Hz, 330 Hz, 440 Hz, …
+    freq_hz = 220.0 * (1.0 + 0.5 * ((idx - 1) % 5))
+    sample_rate = 44100
+    duration_s = 1.0
+    t = np.linspace(0.0, duration_s, int(sample_rate * duration_s), endpoint=False, dtype=np.float64)
+    y = (0.25 * np.sin(2.0 * np.pi * freq_hz * t)).astype(np.float32)
+    buf = io.BytesIO()
+    sf.write(buf, y, sample_rate, format="WAV", subtype="PCM_16")
+    return buf.getvalue()
 
 
 def get_available_sources() -> Dict[str, List[Dict]]:
@@ -201,9 +227,22 @@ def download_source_files(source_name: str, cache_dir: Optional[Path] = None) ->
                     logger.error(error_msg)
                     errors.append(error_msg)
             else:
-                error_msg = f"Local file not found: {local_path}"
-                logger.warning(error_msg)
-                errors.append(error_msg)
+                # Bundled samples missing (e.g. Cloud deploy): synthesize test tones for Sample Files
+                synth = None
+                if source_name == "Sample Files":
+                    synth = _synthetic_test_wav_bytes(local_path.name)
+                if synth is not None:
+                    logger.info(
+                        "Using in-memory test tone (bundled file missing): %s",
+                        local_path.name,
+                    )
+                    file_obj = io.BytesIO(synth)
+                    file_obj.name = local_path.name
+                    downloaded_files.append(file_obj)
+                else:
+                    error_msg = f"Local file not found: {local_path}"
+                    logger.warning(error_msg)
+                    errors.append(error_msg)
             continue
         
         # Check cache first
